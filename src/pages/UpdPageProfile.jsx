@@ -7,6 +7,7 @@ import { Table } from "../components";
 const UpdPageProfile = ({ userId, type }) => {
   const [formData, setFormData] = useState({
   });
+  const [orders, setOrders] = useState([]);
   const [activeSetting, setActiveSetting] = useState(type);
   const [successMessage, setSuccessMessage] = useState(undefined);
   const throwAsyncError = useAsyncError();
@@ -34,8 +35,9 @@ const UpdPageProfile = ({ userId, type }) => {
             "Content-Type": "application/json"
           }
         });
-
-        setFormData(data);
+        console.log(data);
+        setFormData(data.authentication);
+        setOrders(data.orders);
       } catch (error) {
         throwAsyncError(error);
       }
@@ -456,7 +458,7 @@ a.list-group-item, .list-group-item-action {
                             Orders List
                           </div>
                         </div>
-                        <span className="badge badge-secondary">{}</span>
+                        <span className="badge badge-secondary">{ }</span>
                       </div>
                     </Link>
                     <a id="tab-seller" className="list-group-item bg-bright" href="#" onClick={() => handleSetActiveSetting('seller')}>
@@ -587,7 +589,7 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Payment method</label>
                         <div class="tooltip-container">
-                          <p class="beautiful-text" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod}&nbsp;</p>
+                          <p class="beautiful-text" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod.title}&nbsp;</p>
                         </div>
                       </div>
                     </div>
@@ -595,7 +597,7 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Shipping address</label>
                         <div class="tooltip-container">
-                          <p class="beautiful-text" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress}&nbsp;</p>
+                          <p class="beautiful-text" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress.title}&nbsp;</p>
                         </div>
                       </div>
                     </div>

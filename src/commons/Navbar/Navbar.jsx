@@ -8,6 +8,7 @@ import { useAsyncError } from '../../commons';
 const Navbar = () => {
     const throwAsyncError = useAsyncError();
     const [formData, setFormData] = useState(undefined);
+    const [orders, setOrders] = useState([]);
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -23,7 +24,10 @@ const Navbar = () => {
                 return undefined;
             }
         }
-        fetchData().then((data) => setFormData(data));
+        fetchData().then((data) => {
+            setFormData(data.authentication);
+            setOrders(data.orders);
+        });
     }, [])
 
     const state = useSelector(state => state.handleCart)
