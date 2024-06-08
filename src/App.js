@@ -65,7 +65,7 @@ function App() {
       <Provider store={store}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/product" element={<ProductsPage />} />
+          <Route path="/products" element={<ProductsPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
