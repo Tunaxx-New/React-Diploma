@@ -35,6 +35,7 @@ import ListSellers from "./SellerRatings/SellerRatings";
 import OrderInfo from "./pages/Orders/OrderInfo/OrderInfo";
 import { useAsyncError } from './commons';
 import api from './apis/api';
+import CreateProduct from "./components/Seller/CreateProduct";
 
 function App() {
   const throwAsyncError = useAsyncError();
@@ -67,6 +68,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
+
+          <Route path="/create-product/:id" element={<CreateProduct />} />
+
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/cart" element={<Cart />} />

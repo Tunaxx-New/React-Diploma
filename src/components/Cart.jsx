@@ -4,13 +4,79 @@ import { useSelector, useDispatch } from "react-redux";
 import { addCart, delCart } from "../redux/action";
 import { Link } from "react-router-dom";
 
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAsyncError } from "../commons";
+import api from "../apis/api";
+import imageApi from "../apis/imageApi";
+import { Table } from "../components";
+
 const Cart = () => {
   const state = useSelector((state) => state.handleCart);
   const dispatch = useDispatch();
 
+  const [cart, setCart] = useState({});
+
+  const [updated, setUpdated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const throwAsyncError = useAsyncError();
+  const navigate = useNavigate();
+
+  const joinAddress = (addressObj) => {
+    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+  };
+
+  async function updateCartItems(data) {
+    for (const cartItem of data.cartItems) {
+      cartItem.product.image_filename = await imageApi(cartItem.product.image_filename);
+    }
+    return data;
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        let data = await api('/api/private/buyer/cart/', {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        if (data) {
+          data = await updateCartItems(data);
+          setCart(data);
+        }
+      } catch (error) {
+        navigate("/");
+        //throwAsyncError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+
+  }, [updated])
+
   const EmptyCart = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
     return (
       <div className="container">
+        {isLoading && (
+          <div className="loading-back">
+            <div className="loading-indicator">
+              <div className="loading-circle"></div>
+              <p>Processing...</p>
+            </div>
+          </div>
+        )}
         <div className="row">
           <div className="col-md-12 py-5 bg-light text-center">
             <h4 className="p-3 display-5">Your Cart is Empty</h4>
@@ -24,25 +90,69 @@ const Cart = () => {
   };
 
   const addItem = (product) => {
-    dispatch(addCart(product));
+    //dispatch(addCart(product));
   };
-  const removeItem = (product) => {
-    dispatch(delCart(product));
+  const removeItem = async (product) => {
+    //dispatch(delCart(product));
+  };
+
+  const changeItem = async (product, increment) => {
+    //dispatch(delCart(product));
+    const cartItems_ = [...cart.cartItems];
+    cartItems_.forEach(cartItem => {
+      cartItem.product.seller = null;
+      cartItem.product.categories = null;
+      cartItem.product.tags = null;
+      if (cartItem.id == product.id) {
+        cartItem.amount += increment;
+        if (cartItem.amount < 0) {
+          cartItem.amount = 0;
+        }
+      }
+    });
+
+    setIsLoading(true);
+
+    try {
+      let data = await api('/api/private/buyer/cart/change', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(cartItems_)
+      });
+      if (data) {
+        data = await updateCartItems({ cartItems: data });
+        setUpdated(!updated);
+      }
+    } catch (error) {
+      throwAsyncError(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const ShowCart = () => {
     let subtotal = 0;
     let shipping = 30.0;
     let totalItems = 0;
-    state.map((item) => {
-      return (subtotal += item.price * item.qty);
+    cart.cartItems.map((item) => {
+      return (subtotal += item.product.price * item.amount);
     });
 
-    state.map((item) => {
-      return (totalItems += item.qty);
+    cart.cartItems.map((item) => {
+      return (totalItems += item.amount);
     });
     return (
       <>
+        {isLoading && (
+          <div className="loading-back">
+            <div className="loading-indicator">
+              <div className="loading-circle"></div>
+              <p>Processing...</p>
+            </div>
+          </div>
+        )}
         <section className="h-100 gradient-custom">
           <div className="container py-5">
             <div className="row d-flex justify-content-center my-4">
@@ -52,7 +162,7 @@ const Cart = () => {
                     <h5 className="mb-0">Item List</h5>
                   </div>
                   <div className="card-body">
-                    {state.map((item) => {
+                    {cart.cartItems.map((item) => {
                       return (
                         <div key={item.id}>
                           <div className="row d-flex align-items-center">
@@ -62,18 +172,18 @@ const Cart = () => {
                                 data-mdb-ripple-color="light"
                               >
                                 <img
-                                  src={item.image}
+                                  src={item.product.image_filename}
                                   // className="w-100"
-                                  alt={item.title}
-                                  width={100}
-                                  height={75}
+                                  alt={item.product.name}
+                                  width={"auto"}
+                                  height={100}
                                 />
                               </div>
                             </div>
 
                             <div className="col-lg-5 col-md-6">
                               <p>
-                                <strong>{item.title}</strong>
+                                <strong>{item.product.name}</strong>
                               </p>
                               {/* <p>Color: blue</p>
                               <p>Size: M</p> */}
@@ -87,18 +197,18 @@ const Cart = () => {
                                 <button
                                   className="btn px-3"
                                   onClick={() => {
-                                    removeItem(item);
+                                    changeItem(item, -1);
                                   }}
                                 >
                                   <i className="fas fa-minus"></i>
                                 </button>
 
-                                <p className="mx-5">{item.qty}</p>
+                                <p className="mx-5">{item.amount}</p>
 
                                 <button
                                   className="btn px-3"
                                   onClick={() => {
-                                    addItem(item);
+                                    changeItem(item, 1);
                                   }}
                                 >
                                   <i className="fas fa-plus"></i>
@@ -107,8 +217,8 @@ const Cart = () => {
 
                               <p className="text-start text-md-center">
                                 <strong>
-                                  <span className="text-muted">{item.qty}</span>{" "}
-                                  x ${item.price}
+                                  <span className="text-muted">{item.amount}</span>{" "}
+                                  x ${item.product.price ? item.product.price : 0}
                                 </strong>
                               </p>
                             </div>
@@ -168,7 +278,7 @@ const Cart = () => {
       <div className="container my-3 py-3">
         <h1 className="text-center">Cart</h1>
         <hr />
-        {state.length > 0 ? <ShowCart /> : <EmptyCart />}
+        {(cart.cartItems && cart.cartItems.length > 0) ? <ShowCart /> : <EmptyCart />}
       </div>
       <Footer />
     </>

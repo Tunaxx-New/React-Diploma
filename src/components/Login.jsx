@@ -4,13 +4,17 @@ import { Footer, Navbar } from "../commons";
 import { authenticateUser } from "../apis/authApi"; // Import the registerUser function from authApi
 import api from "../apis/api";
 import Cookies from "universal-cookie";
+import { useAsyncError } from "../commons";
 
 const cookies = new Cookies();
 
 const Login = ({ history }) => {
   // cookies
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
+  const throwAsyncError = useAsyncError();
   const [formData, setFormData] = useState({
     // name: '',
     email: "test@gmail.com",
@@ -56,6 +60,7 @@ const Login = ({ history }) => {
       // Проверка на успешную аутентификацию
     } catch (error) {
       console.error("Error:", error.message);
+      throwAsyncError(error);
     }
   };
 

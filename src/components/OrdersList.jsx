@@ -1,7 +1,62 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./OrdersList"
+import { useAsyncError } from "../commons";
+import api from "../apis/api";
+import { Table } from "../components";
+
 const OrdersList = () => {
+  const [formData, setFormData] = useState({
+  });
+  const [orders, setOrders] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const throwAsyncError = useAsyncError();
+  const navigate = useNavigate();
+
+  const joinAddress = (addressObj) => {
+    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+  };
+
+  useEffect(() => {
+
+    const fetchData = async () => {
+      try {
+        let data = await api('/api/private/buyer/order/list', {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          params: {
+            page: 0,
+            size: Number.MAX_SAFE_INTEGER
+          }
+        });
+
+        if (data) {
+          setOrders(data.content);
+        }
+        data = await api('/api/private/profile', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+        });
+
+        if (data) {
+          setFormData(data.authentication);
+        }
+
+      } catch (error) {
+        navigate("/");
+        //throwAsyncError(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div>
       <link
@@ -12,36 +67,39 @@ const OrdersList = () => {
         <div class="row">
           <div class="col-lg-4 pb-5">
             {/* <!-- Account Sidebar--> */}
-            <div class="author-card pb-3">
-              <div
-                class="author-card-cover"
+            {formData.buyer &&
+              <div class="author-card pb-3">
+                <div
+                  class="author-card-cover"
                 // style="background-image: url(https://bootdey.com/img/Content/flores-amarillas-wallpaper.jpeg);"
-              >
-                <a
-                  class="btn btn-style-1 btn-white btn-sm"
-                  href="#"
-                  data-toggle="tooltip"
-                  title=""
-                  data-original-title="You currently have 290 Reward points to spend"
                 >
-                  <i class="fa fa-award text-md"></i>&nbsp;290 points
-                </a>
-              </div>
-              <div class="author-card-profile">
-                <div class="author-card-avatar">
-                  <img
-                    src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                    alt="Daniel Adams"
-                  />
+                  <a
+                    class="btn btn-style-1 btn-white btn-sm"
+                    href="#"
+                    data-toggle="tooltip"
+                    title=""
+                    data-original-title={`You currently have ${formData.buyer ? formData.buyer.badges.length : 0} Badges`}
+                  >
+                    <i class="fa fa-award text-md"></i>&nbsp;{formData.buyer ? formData.buyer.badges.length : 0} Badges
+                  </a>
                 </div>
-                <div class="author-card-details">
-                  <h5 class="author-card-name text-lg">Daniel Adams</h5>
-                  <span class="author-card-position">
-                    Joined February 06, 2017
-                  </span>
+                <div class="author-card-profile">
+                  <div class="author-card-avatar">
+                    <img
+                      src={`./avatars/images/ava_${((formData.buyer.id) % 25 + 1).toString().padStart(2, '0')}.gif`}
+                      alt={formData.buyer.name}
+                      style={{ width: '400px', height: '400px' }}
+                    />
+                  </div>
+                  <div class="author-card-details">
+                    <h5 class="author-card-name text-lg">{formData.buyer.name} {formData.buyer.surname}</h5>
+                    <span class="author-card-position">
+                      Joined {new Date(formData.registeredTime).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            }
             <div class="wizard">
               <nav class="list-group list-group-flush">
                 <a class="list-group-item active" href="#">
@@ -52,7 +110,7 @@ const OrdersList = () => {
                         Orders List
                       </div>
                     </div>
-                    <span class="badge badge-secondary">6</span>
+                    <span class="badge badge-secondary">{orders.length}</span>
                   </div>
                 </a>
                 <Link to="/profile" class="list-group-item">
@@ -66,6 +124,10 @@ const OrdersList = () => {
             <div class="d-flex justify-content-end pb-3">
               <div class="form-inline">
                 <label class="text-muted mr-3" for="order-sort">
+                  &nbsp;
+                </label>
+                {/*
+                <label class="text-muted mr-3" for="order-sort">
                   Sort Orders
                 </label>
                 <select class="form-control" id="order-sort">
@@ -75,6 +137,7 @@ const OrdersList = () => {
                   <option>Delayed</option>
                   <option>Canceled</option>
                 </select>
+                */}
               </div>
             </div>
             <div class="table-responsive">
@@ -88,111 +151,59 @@ const OrdersList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        78A643CD409
-                      </a>
-                    </td>
-                    <td>August 08, 2017</td>
-                    <td>
-                      <span class="badge badge-danger m-0">Canceled</span>
-                    </td>
-                    <td>
-                      <span>$760.50</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        34VB5540K83
-                      </a>
-                    </td>
-                    <td>July 21, 2017</td>
-                    <td>
-                      <span class="badge badge-info m-0">In Progress</span>
-                    </td>
-                    <td>$315.20</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        112P45A90V2
-                      </a>
-                    </td>
-                    <td>June 15, 2017</td>
-                    <td>
-                      <span class="badge badge-warning m-0">Delayed</span>
-                    </td>
-                    <td>$1,264.00</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        28BA67U0981
-                      </a>
-                    </td>
-                    <td>May 19, 2017</td>
-                    <td>
-                      <span class="badge badge-success m-0">Delivered</span>
-                    </td>
-                    <td>$198.35</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        502TR872W2
-                      </a>
-                    </td>
-                    <td>April 04, 2017</td>
-                    <td>
-                      <span class="badge badge-success m-0">Delivered</span>
-                    </td>
-                    <td>$2,133.90</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a
-                        class="navi-link"
-                        href="#order-details"
-                        data-toggle="modal"
-                      >
-                        47H76G09F33
-                      </a>
-                    </td>
-                    <td>March 30, 2017</td>
-                    <td>
-                      <span class="badge badge-success m-0">Delivered</span>
-                    </td>
-                    <td>$86.40</td>
-                  </tr>
+                  {orders && orders.map((order, index) => {
+                    const orderItems_ = [];
+                    order.orderItems.map((item, itemIndex) => {
+                      const item_ = { ...item };
+                      item_.productReview = item_.productReview ? "❌" : "✔️";
+                      item_.product = item_.product ? item_.product.name : "";
+                      delete item_.createdTime;
+                      orderItems_.push(item_);
+                    });
+                    return (
+                      <React.Fragment key={index}>
+                        <tr>
+                          <td>
+                            <a
+                              class="navi-link"
+                              href="#order-details"
+                              data-toggle="modal"
+                            >
+                              {order.id}
+                            </a>
+                          </td>
+                          <td>{new Date(order.createdTime).toISOString().split('T')[0]}</td>
+                          <td>
+                            <span class="badge badge-info m-0">In Progress</span>
+                          </td>
+                          <td>
+                            <span>${order.price}</span>
+                          </td>
+                        </tr>
+                        <tr key={index}>
+                          <td colSpan="4" className="bg-light">
+                            <div>
+                              <strong>Shipping Address:</strong> {joinAddress(order.shippingAddress.address)}
+                            </div>
+                            <div>
+                              <strong>Payment Method:</strong> <span class="badge badge-warning m-0">{`${order.paymentMethod.title}`}</span>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan="4" className="bg-light">
+                            <Table initialData={orderItems_} initialItemsPerPage={2} initialTableName="Order items"></Table>
+                          </td>
+                        </tr>
+                      </React.Fragment>)
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

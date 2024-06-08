@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Navbar, Main, Footer, Products, ModalWindow } from "../commons";
+import { ProductCard } from "../components";
 // import { Product } from "../components";
 function Home() {
   useEffect(() => {
@@ -12,6 +13,7 @@ function Home() {
     <>
       <Navbar />
       <ModalWindow />
+      <ProductCard product={{id: 1}}></ProductCard>
       <Main />
       <Products />
       {/* <Footer /> */}

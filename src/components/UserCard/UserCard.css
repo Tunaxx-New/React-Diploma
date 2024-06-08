@@ -45,5 +45,5 @@
 .user-card-img {
     width: 70px;
     height: 70px;
-    clip-path: ellipse(50% 25% at center);
+    clip-path: ellipse(50% 50% at center);
 }
