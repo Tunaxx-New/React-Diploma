@@ -17,11 +17,11 @@ class UserCard extends Component {
             case 'Seller':
                 return 'var(--badge-color-new)';
             case 'User':
-                return 'var(--badge-color-popular)';
+                return 'var(--badge-color-default)';
             case 'Buyer':
                 return 'var(--badge-color-sale)';
             case 'Admin':
-                return 'var(--badge-color-limited)';
+                return 'var(--badge-color-popular)';
             default:
                 return 'var(--badge-color-default)';
         }

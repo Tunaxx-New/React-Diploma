@@ -5,11 +5,16 @@ import { UserCard } from '../../components';
 import api from '../../apis/api';
 import { useAsyncError } from '../../commons';
 
+import Cookies from "universal-cookie";
+import { RegisterSeller } from "../../components";
+
 const Navbar = () => {
     const throwAsyncError = useAsyncError();
     const [formData, setFormData] = useState(undefined);
     const [orders, setOrders] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     useEffect(() => {
+        setIsLoading(true);
         const fetchData = async () => {
             try {
                 return await api('/api/private/profile', {
@@ -25,15 +30,32 @@ const Navbar = () => {
             }
         }
         fetchData().then((data) => {
-            setFormData(data.authentication);
-            setOrders(data.orders);
+            if (data) {
+                setFormData(data.authentication);
+                setOrders(data.orders);
+            }
+            setIsLoading(false);
         });
     }, [])
+
+    const logout = () => {
+        const cookies = new Cookies();
+        cookies.remove('Authorization');
+        window.location.reload();
+    };
 
     const state = useSelector(state => state.handleCart)
     const isLogged = !(formData === undefined || formData.id === undefined);
     return (
         <div className="bg-light">
+            {isLoading && (
+                <div className="loading-back">
+                    <div className="loading-indicator">
+                        <div className="loading-circle"></div>
+                        <p>Processing...</p>
+                    </div>
+                </div>
+            )}
             <div className="bg-light">
                 <nav className="navbar navbar-expand-lg navbar-light sticky-top">
                     <div className="container">
@@ -60,7 +82,9 @@ const Navbar = () => {
                                     <NavLink className="nav-link" to="/profile">Profile</NavLink>
                                 </li>
                             </ul>
-                            <div className="buttons text-center">
+                            <div className="buttons text-center" style={{display:"flex"}}>
+                                {formData && formData.seller == null && <RegisterSeller></RegisterSeller>}
+                                {formData && formData.seller && <NavLink to="/create-product/null" className="btn btn-outline-dark m-2"><i class="bi bi-box-seam-fill mr-1"></i> Create Product</NavLink>}
                                 {!isLogged ? (
                                     <>
                                         <NavLink to="/login" className="btn btn-outline-dark m-2"><i className="fa fa-sign-in-alt mr-1"></i> Login</NavLink>
@@ -68,7 +92,8 @@ const Navbar = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <NavLink to="/cart" className="btn btn-outline-dark m-2"><i className="fa fa-cart-shopping mr-1"></i> Cart ({state.length}) </NavLink>
+                                        <NavLink to="/cart" className="btn btn-outline-dark m-2"><i className="fa fa-cart-shopping mr-1"></i> Cart ({formData.buyer.cart.cartItems.length}) </NavLink>
+                                        <button onClick={logout} className="btn btn-outline-dark m-2">Logout</button>
                                     </>
                                 )}
                             </div>

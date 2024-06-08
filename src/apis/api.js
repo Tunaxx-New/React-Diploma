@@ -29,7 +29,7 @@ const api = async (route, request) => {
     () => {};
   }
 
-  if (!response.ok || (responseJson && responseJson.error) || response.status != 200) {
+  if (!response.ok || (responseJson && responseJson.error) || (response.status > 390 || response.status < 200)) {
     responseJson.text = responseText;
     throw new Error(
       `${response.status}~${response.statusText}~${JSON.stringify(responseJson)}`,
@@ -43,7 +43,7 @@ const api = async (route, request) => {
       { path: "/" },
     );
 
-  return responseJson;
+  return responseText == "" ? responseJson : responseText;
 };
 
 export default api;

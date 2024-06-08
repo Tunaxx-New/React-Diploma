@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../apis/api";
 import { useAsyncError } from '../commons';
-import { Table } from "../components";
+import { ChangeTransparentTables, LoyaltyCard, Table } from "../components";
+import { BadgesGrid } from "../components";
+import imageApi from "../apis/imageApi";
+import { Diagram } from "../components";
 
 const UpdPageProfile = ({ userId, type }) => {
   const [formData, setFormData] = useState({
   });
   const [orders, setOrders] = useState([]);
+
+  const [clv, setClv] = useState();
+  const [loyalty, setLoyalty] = useState();
+  // TODO: const [loyaltySeller, setLoyaltySeller] = useState();
+
   const [activeSetting, setActiveSetting] = useState(type);
   const [successMessage, setSuccessMessage] = useState(undefined);
   const throwAsyncError = useAsyncError();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadedImages, setISLoadedImages] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleSetActiveSetting = (setting) => {
     const tabs = document.querySelectorAll('.list-group-item');
@@ -21,26 +34,103 @@ const UpdPageProfile = ({ userId, type }) => {
         tab.classList.remove('active');
       }
     });
-
     setActiveSetting(setting);
   };
 
   useEffect(() => {
     setActiveSetting(type);
+    setIsLoading(true);
     const fetchData = async () => {
+      let data = null;
       try {
-        const data = await api('/api/private/profile', {
+        data = await api('/api/private/profile', {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           }
         });
-        console.log(data);
-        setFormData(data.authentication);
-        setOrders(data.orders);
+        if (data) {
+          setFormData(data.authentication);
+        }
+
+        const data2 = await api('/api/private/buyer/order/list', {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          params: {
+            page: 0,
+            size: Number.MAX_SAFE_INTEGER
+          }
+        });
+        console.log(data2);
+        if (data2) {
+          setOrders(data2.content);
+        }
+
       } catch (error) {
+        console.log(error, "ASDDSASSSS");
+        navigate("/");
         throwAsyncError(error);
       }
+      if (data == null)
+        return;
+      const formData_ = data.authentication;
+      setISLoadedImages(false);
+      try {
+        console.log(formData_.buyer, formData, "LOADED");
+        if (formData_.buyer) {
+          formData_.buyer.badges = await updateBadges(formData_.buyer.badges);
+          console.log(formData_, "LOADED");
+          setFormData(formData_);
+        }
+      } catch (error) {
+        throwAsyncError(error);
+      } finally {
+        setISLoadedImages(true);
+      }
+
+      try {
+        let data = await api('/api/private/buyer/profile/CLV', {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        if (data)
+          setClv(data);
+
+        data = await api('/api/private/buyer/profile/loyalty', {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (data)
+          setLoyalty(data);
+
+        try {
+          if (formData_.seller) {
+            data = await api('/api/private/seller/profile/loyalty', {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            });
+          }
+          if (data)
+            setLoyaltySeller(data);
+        } catch (error) {
+          console.log(error);
+        }
+
+      } catch (error) {
+        throwAsyncError(error);
+      } finally {
+        setIsLoading(false);
+      }
+
     };
 
     fetchData();
@@ -49,6 +139,28 @@ const UpdPageProfile = ({ userId, type }) => {
   useEffect(() => {
     handleSetActiveSetting(activeSetting);
   }, []);
+
+  /*
+  useEffect(() => {
+    const fetchData = async () => {
+      setISLoadedImages(false);
+      setIsLoading(true);
+      try {
+        if (formData.buyer)
+          await updateBadges(formData.buyer.badges);
+      } catch (error) {
+        throwAsyncError(error);
+      } finally {
+        setIsLoading(false);
+        setISLoadedImages(true);
+      }
+    };
+    document.querySelectorAll('.item-image').forEach((image, index) => {
+      image.src = formData.buyer.badges[index].imageSource;
+    });
+    fetchData();
+  }, [activeSetting])
+  */
 
   const [errors, setErrors] = useState({});
 
@@ -144,11 +256,12 @@ const UpdPageProfile = ({ userId, type }) => {
           },
           body: JSON.stringify(formData[`${activeSetting}`])
         });
-
+        document.querySelector('.success-message').style.top = null;
         document.querySelector('.success-message').style.animation = 'animation: fadeInOut 2s linear';
         setSuccessMessage(`Your ${activeSetting} updated successfuly!`);
         setTimeout(() => {
           setSuccessMessage(undefined);
+          document.querySelector('.success-message').style.top = "-1000px";
         }, 2000);
 
       } catch (error) {
@@ -206,10 +319,46 @@ const UpdPageProfile = ({ userId, type }) => {
   //   }
   // };
 
+  async function updateBadges(data) {
+    for (const badge of data) {
+      const resp = await imageApi(badge.imageSource);
+      badge.imageSource = resp;
+    }
+    return data;
+  }
 
+  const joinAddress = (addressObj) => {
+    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+  };
+  const styles = {
+    container: {
+      padding: '20px',
+      backgroundColor: '#f8f8f8',
+      borderRadius: '5px',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+    },
+    heading: {
+      fontSize: '24px',
+      marginBottom: '20px'
+    },
+    infoContainer: {
+      display: "flex",
+      alignContent: "center",
+      alignItems: "center",
+      border: '1px solid #ddd',
+      padding: '20px',
+      borderRadius: '5px',
+      marginBottom: "8px"
+    },
+    link: {
+      color: '#007bff',
+      textDecoration: 'none',
+      marginLeft: '10px'
+    }
+  };
   return (
     <div>
-      <div className={`success-message ${successMessage ? 'animate' : ''}`} style={{ opacity: 0 }}>{successMessage}</div>
+      <div className={`success-message ${successMessage ? 'animate' : ''}`} style={{ opacity: 0, top: -1000 }}>{successMessage}</div>
       {formData.id &&
         <div>
           <style>
@@ -407,6 +556,14 @@ a.list-group-item, .list-group-item-action {
             rel="stylesheet"
           />
           <div className="container mt-5">
+            {isLoading && (
+              <div className="loading-back">
+                <div className="loading-indicator">
+                  <div className="loading-circle"></div>
+                  <p>Processing...</p>
+                </div>
+              </div>
+            )}
             <div className="row">
               <div className="col-lg-4 pb-5">
                 {/* <!-- Account Sidebar--> */}
@@ -427,10 +584,36 @@ a.list-group-item, .list-group-item-action {
                   </div>
                   <div className="author-card-profile">
                     <div className="author-card-avatar">
-                      <img
-                        src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                        alt="Daniel Adams"
-                      />
+                      {((activeSetting == 'user') || !activeSetting || (activeSetting == 'badge')) &&
+                        <img
+                          src={`./avatars/images/ava_${((formData.id + 20) % 25 + 1).toString().padStart(2, '0')}.gif`}
+                          alt={formData.email}
+                        />
+                      }
+                      {activeSetting == 'seller' &&
+                        <img
+                          src={`./avatars/images/ava_${((formData.seller.id + 10) % 25 + 1).toString().padStart(2, '0')}.gif`}
+                          alt={formData.seller.name}
+                        />
+                      }
+                      {activeSetting == 'buyer' &&
+                        <img
+                          src={`./avatars/images/ava_${((formData.buyer.id) % 25 + 1).toString().padStart(2, '0')}.gif`}
+                          alt={formData.buyer.name}
+                        />
+                      }
+                      {activeSetting == 'admin' &&
+                        <img
+                          src={`./avatars/images/ava_admin.jpg`}
+                          alt={formData.email}
+                        />
+                      }
+                      {activeSetting == 'metric' &&
+                        <img
+                          src={`./avatars/images/ava_admin.jpg`}
+                          alt={formData.email}
+                        />
+                      }
                     </div>
                     <div className="author-card-details">
                       <h5 className="author-card-name text-lg">
@@ -458,23 +641,43 @@ a.list-group-item, .list-group-item-action {
                             Orders List
                           </div>
                         </div>
-                        <span className="badge badge-secondary">{ }</span>
+                        <span className="badge badge-secondary">{orders.length}</span>
                       </div>
                     </Link>
-                    <a id="tab-seller" className="list-group-item bg-bright" href="#" onClick={() => handleSetActiveSetting('seller')}>
-                      <i className="fe-icon-user text-muted"></i>Seller profile
-                    </a>
-                    <Link to="/orders-list" className="list-group-item bg-middle">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                          <i className="fe-icon-shopping-bag mr-1 text-muted"></i>
-                          <div className=" no-underline d-inline-block font-weight-medium text-uppercase ">
-                            Product list
+                    {formData.seller &&
+                      <div>
+                        <a id="tab-seller" className="list-group-item bg-bright" href="#" onClick={() => handleSetActiveSetting('seller')}>
+                          <i className="fe-icon-user text-muted"></i>Seller profile
+                        </a>
+                        <Link to="/product-list" className="list-group-item bg-middle">
+                          <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <i className="fe-icon-shopping-bag mr-1 text-muted"></i>
+                              <div className=" no-underline d-inline-block font-weight-medium text-uppercase ">
+                                Product list
+                              </div>
+                            </div>
+                            <span className="badge badge-secondary">{formData.seller.products.length}</span>
                           </div>
-                        </div>
-                        <span className="badge badge-secondary">6</span>
+                        </Link>
                       </div>
-                    </Link>
+                    }
+                    <a id="tab-badge" className="white-border list-group-item bg-warning" href="#" onClick={() => handleSetActiveSetting('badge')} style={{ borderLeftColor: "white!important" }}>
+                      <i className="fe-icon-user text-muted"></i>Badges
+                    </a>
+                    <a id="tab-metric" className="list-group-item bg-light" href="#" onClick={() => handleSetActiveSetting('metric')}>
+                      <i className="fe-icon-user text-muted"></i>Metrics
+                    </a>
+                    {(formData.roles.reduce((isAdmin = false, role) => { return isAdmin || role.name === "ADMIN" }, false)) &&
+                      <a id="tab-admin" className="list-group-item bg-light" href="#" onClick={() => handleSetActiveSetting('admin')}>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <i className="fe-icon-user text-muted"></i>Admin
+                          </div>
+                          <h6 style={{ margin: 0 }}>🛠️</h6>
+                        </div>
+                      </a>
+                    }
                   </nav>
                 </div>
               </div>
@@ -568,7 +771,7 @@ a.list-group-item, .list-group-item-action {
                       </div>
                     </div>
 
-                    <label htmlFor="account-cart">Cart info</label>
+                    <h3 htmlFor="account-cart">Cart info</h3>
                     <div className="col-md-3">
                       <div className="form-group">
                         <label htmlFor="account-cart-id">ID</label>
@@ -589,7 +792,7 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Payment method</label>
                         <div class="tooltip-container">
-                          <p class="beautiful-text" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod.title}&nbsp;</p>
+                          <p class="" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod.title}&nbsp;</p>
                         </div>
                       </div>
                     </div>
@@ -597,9 +800,23 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Shipping address</label>
                         <div class="tooltip-container">
-                          <p class="beautiful-text" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress.title}&nbsp;</p>
+                          <p class="" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress.title}&nbsp;</p>
                         </div>
                       </div>
+                    </div>
+                    <div className="col-md-12">
+                      <div className="form-group">
+                        <label htmlFor="account-cart">Shipping address Detail</label>
+                        <div class="tooltip-container">
+                          <p class="" data-tooltip="Shipping address for order">{joinAddress(formData.buyer.cart.shippingAddress.address)}&nbsp;</p>
+                        </div>
+                        <div class="tooltip-container">
+                          <p> {formData.buyer.cart.shippingAddress.geoLocation.latitude} {formData.buyer.cart.shippingAddress.geoLocation.longitude}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-12" style={{ width: "100px" }}>
+
                     </div>
                     <div className="col-md-12">
                       <p>You can change your cart in <Link to="/cart" style={{ color: "blue" }}>Cart</Link> page</p>
@@ -655,75 +872,83 @@ a.list-group-item, .list-group-item-action {
                       </div>
                     </div>
                   </form>
-
-                  <div className="col-md-6 p-2">
-                    <div className="custom-control custom-checkbox d-block">
-                      <input
-                        className="custom-control-input"
-                        type="checkbox"
-                        name="subscribe"
-                        checked={formData.enabled}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <label
-                        className="custom-control-label"
-                        htmlFor="subscribe_me"
-                      >
-                        Enabled account
-                      </label>
+                  <div className="row">
+                    <div className="col-md-6 p-2">
+                      <h3>Account status</h3>
+                      <div className="col p-2">
+                        <div className="custom-control custom-checkbox d-block">
+                          <input
+                            className="custom-control-input"
+                            type="checkbox"
+                            name="subscribe"
+                            checked={formData.enabled}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="subscribe_me"
+                          >
+                            Enabled account
+                          </label>
+                        </div>
+                      </div>
+                      <div className="col p-2">
+                        <div className="custom-control custom-checkbox d-block">
+                          <input
+                            className="custom-control-input"
+                            type="checkbox"
+                            name="subscribe"
+                            checked={formData.credentialsNonExpired}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="subscribe_me"
+                          >
+                            Non expired credentials
+                          </label>
+                        </div>
+                      </div>
+                      <div className="col p-2">
+                        <div className="custom-control custom-checkbox d-block">
+                          <input
+                            className="custom-control-input"
+                            type="checkbox"
+                            name="subscribe"
+                            checked={formData.accountNonExpired}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="subscribe_me"
+                          >
+                            Non expired account
+                          </label>
+                        </div>
+                      </div>
+                      <div className="col p-2">
+                        <div className="custom-control custom-checkbox d-block">
+                          <input
+                            className="custom-control-input"
+                            type="checkbox"
+                            name="subscribe"
+                            checked={formData.accountNonLocked}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="subscribe_me"
+                          >
+                            Non locked account
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6 p-2">
+                      <ChangeTransparentTables transparentCurrent={formData.authenticationTransparentPolicies} isLoading={setIsLoading}></ChangeTransparentTables>
                     </div>
                   </div>
-                  <div className="col-md-6 p-2">
-                    <div className="custom-control custom-checkbox d-block">
-                      <input
-                        className="custom-control-input"
-                        type="checkbox"
-                        name="subscribe"
-                        checked={formData.credentialsNonExpired}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <label
-                        className="custom-control-label"
-                        htmlFor="subscribe_me"
-                      >
-                        Non expired credentials
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col-md-6 p-2">
-                    <div className="custom-control custom-checkbox d-block">
-                      <input
-                        className="custom-control-input"
-                        type="checkbox"
-                        name="subscribe"
-                        checked={formData.accountNonExpired}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <label
-                        className="custom-control-label"
-                        htmlFor="subscribe_me"
-                      >
-                        Non expired account
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col-md-6 p-2">
-                    <div className="custom-control custom-checkbox d-block">
-                      <input
-                        className="custom-control-input"
-                        type="checkbox"
-                        name="subscribe"
-                        checked={formData.accountNonLocked}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <label
-                        className="custom-control-label"
-                        htmlFor="subscribe_me"
-                      >
-                        Non locked account
-                      </label>
-                    </div>
-                  </div>
+                  <hr />
                   <div className="">
                     <Table initialData={formData.roles} initialTableName="Roles"></Table>
                   </div>
@@ -855,6 +1080,78 @@ a.list-group-item, .list-group-item-action {
                       </div>
                     </div>
                   </form>
+                </div>
+              }
+              {(isLoadedImages && (activeSetting == 'badge') && formData.buyer && formData.buyer.badges) &&
+                <div className="col-lg-8 pb-5">
+                  <div><h3>Badges</h3></div>
+                  <BadgesGrid badges={formData.buyer.badges}></BadgesGrid>
+                </div>
+              }
+              {activeSetting == 'metric' &&
+                <div className="col-lg-8 pb-5">
+                  <div className="d-flex" style={{ flexWrap: 'wrap' }}>
+
+                    <LoyaltyCard value={loyalty} title="Loyalty Index Buyer"></LoyaltyCard>
+                    {formData.seller && <LoyaltyCard value={loyaltySeller} title="Loyalty Index Seller"></LoyaltyCard>}
+                    <LoyaltyCard value={clv.clvsAverage.toFixed(2)} title="CLV" tresholds={[2, 0]}></LoyaltyCard>
+                    <LoyaltyCard value={orders.reduce((sumo, order) => { return sumo + order.orderItems.reduce((sumoi, orderItem) => { return sumoi + orderItem.price * orderItem.amount }, 0) }, 0)} title="Money spent" tresholds={[500, 100]} tresholdCoef={-1} textAdd="$"></LoyaltyCard>
+                    <LoyaltyCard value={formData.buyer.badges.length} title="Badges Count" tresholds={[5, 2]}></LoyaltyCard>
+                  </div>
+                  <Diagram coefficient={3600000 * 2} data={
+                    clv.clvsGapsStatic.map(item => ({
+                      x: Number(new Date(item.dateTime) / (3600000 * 2)), // Transforming date to a readable format
+                      y: -item.value // Keeping value as y
+                    }))
+                  } title={"CLV Order gaps static"} xAxisName={"Date"} yAxisName={"CLV index"}></Diagram>
+                  <br></br>
+                  <Diagram coefficient={3600000 * 2} data={
+                    clv.clvsGapsDelta.map(item => ({
+                      x: Number(new Date(item.dateTime) / (3600000 * 2)), // Transforming date to a readable format
+                      y: -item.value // Keeping value as y
+                    }))
+                  } title={"CLV Order gaps delta"} xAxisName={"Date"} yAxisName={"CLV index"}></Diagram>
+                </div>
+              }
+              {activeSetting == 'admin' &&
+                <div className="col-lg-8 pb-5">
+                  <Link to="https://docs.google.com/spreadsheets/d/1fku7j-Uwp1QvNj2xliEHk9F8nhjHeP-V8pS844uvebY/edit#gid=1623796006" className="btn btn-success mb-3" style={{ width: "100%" }}>
+                    💻Admin panel
+                  </Link>
+                  <div>
+                    <div style={styles.infoContainer}>
+                      <img src="https://static-00.iconduck.com/assets.00/digital-ocean-color-icon-256x256-15ougnla.png" alt="Description" style={{ margin: 0, width: "32px" }} />
+                      <a href="http://104.248.234.194/" style={styles.link}>104.248.234.194</a>
+                    </div>
+                    <div style={styles.infoContainer}>
+                      <img src="https://payoneer.gallerycdn.vsassets.io/extensions/payoneer/grafana-annotations/1.3.1/1659271747890/Microsoft.VisualStudio.Services.Icons.Default" alt="Description" style={{ margin: 0, width: "32px" }} />
+                      <a href="http://104.248.234.194:3000/d/f68f9853-28c8-4e0f-872e-8d8dd0e5226d/" style={{ ...styles.link, color: "orange" }}>Graphana dashboard</a>
+                    </div>
+                    <div style={styles.infoContainer}>
+                      <img src="https://cdn.iconscout.com/icon/free/png-256/free-prometheus-282488.png?f=webp" alt="Description" style={{ margin: 0, width: "32px" }} />
+                      <a href="http://104.248.234.194:9090/" style={{ ...styles.link, color: "#db4e30" }}>Prometheus container</a>
+                    </div>
+                    <div style={styles.infoContainer}>
+                      <img src="https://cf.appdrag.com/dashboard-openvm-clo-b2d42c/uploads/minio-icon-rbzC.png" alt="Description" style={{ margin: 0, width: "32px" }} />
+                      <a href="http://104.248.234.194:9001/" style={{ ...styles.link, color: "#c50036" }}>Minio files</a>
+                    </div>
+                    <div>
+                      <h2>Actuator Endpoints</h2>
+                      <ul>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/info" style={styles.link}>Info</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/metrics" style={styles.link}>Metrics</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/env" style={styles.link}>Environment</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/beans" style={styles.link}>Beans</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/loggers" style={styles.link}>Loggers</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/trace" style={styles.link}>Trace</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/httptrace" style={styles.link}>HTTP Trace</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/mappings" style={styles.link}>Mappings</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/threaddump" style={styles.link}>Thread Dump</a></li>
+                        <li><a href="http://104.248.234.194:8080/api/actuator/jvm" style={styles.link}>JVM</a></li>
+                      </ul>
+                    </div>
+
+                  </div>
                 </div>
               }
             </div>

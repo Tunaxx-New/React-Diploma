@@ -5,6 +5,7 @@ import api from "../apis/api";
 import { useAsyncError } from "../commons";
 
 const Register = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     name: "",

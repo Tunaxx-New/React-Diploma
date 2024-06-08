@@ -46,18 +46,20 @@ function Table({ initialData = [], initialItemsPerPage = 10, initialTableName = 
 				if (filterOptions.length > 0) {
 					filteredData = filteredData.filter((item, index) => {
 						let isAllFalse = false;
-						filterOptions[index].every(filter => {
-							isAllFalse = isAllFalse || filter.selected;
-						});
+						if (filterOptions[index]) {
+							filterOptions[index].every(filter => {
+								isAllFalse = isAllFalse || filter.selected;
+							});
 
-						if (!isAllFalse)
-							return true;
+							if (!isAllFalse)
+								return true;
 
-						return filterOptions[index].every(filter => {
-							const itemValue = nestedKeys.getValueByNestedKey(item, filter.key) + "";
-							console.log(itemValue, filter, itemValue.includes(filter.title));
-							return itemValue.includes(filter.title);
-						});
+							return filterOptions[index].every(filter => {
+								const itemValue = nestedKeys.getValueByNestedKey(item, filter.key) + "";
+								console.log(itemValue, filter, itemValue.includes(filter.title));
+								return itemValue.includes(filter.title);
+							});
+						}
 					});
 				}
 
