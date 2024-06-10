@@ -4,12 +4,15 @@ import "./OrdersList"
 import { useAsyncError } from "../commons";
 import api from "../apis/api";
 import imageApi from "../apis/imageApi";
-import { Table } from "../components";
+import { Table, Tag } from ".";
+import CreateProduct from "./Seller/CreateProduct";
 
-const OrdersList = () => {
+const ProductList = () => {
   const [formData, setFormData] = useState({
   });
-  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [update, setUpdate] = useState(false);
 
   const [loadingText, setLoadingText] = useState('...Loading');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,15 +20,11 @@ const OrdersList = () => {
   const throwAsyncError = useAsyncError();
   const navigate = useNavigate();
 
-  const joinAddress = (addressObj) => {
-    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
-  };
-
   useEffect(() => {
 
     const fetchData = async () => {
       try {
-        let data = await api('/api/private/buyer/order/list', {
+        let data = await api('/api/private/seller/profile', {
           method: "GET",
           headers: {
             "Content-Type": "application/json"
@@ -35,52 +34,36 @@ const OrdersList = () => {
             size: Number.MAX_SAFE_INTEGER
           }
         });
-        
-        const orders = data.content;
-        
-        if (Array.isArray(orders)) {
+
+        const products = data.products;
+        if (Array.isArray(products)) {
           setLoadingText('...Loading Images');
-          await Promise.all(orders.map(async order => {
+          await Promise.all(products.map(async product => {
             setIsLoading(true);
-            await Promise.all(order.orderItems.map(async orderItem => {
-              setIsLoading(true);
-              orderItem.product.image_filename = await imageApi(orderItem.product.image_filename);
-            }));
+            product.image_filename = await imageApi(product.image_filename);
           }));
+          setProducts(products);
           setLoadingText('...Fetching Data');
-        }
-        
-
-        if (orders) {
-          setOrders(orders);
-        }
-        data = await api('/api/private/profile', {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-        });
-
-        if (data) {
-          setFormData(data.authentication);
+          setIsLoading(false);
         }
 
       } catch (error) {
-        navigate("/");
-        //throwAsyncError(error);
+        //navigate("/");
+        throwAsyncError(error);
       }
-      setIsLoading(false);
     };
-
+    setIsLoading(true);
     fetchData();
-  }, []);
+    setIsLoading(false);
+  }, [update]);
+
+  function closeChange() {
+    setSelectedProduct(null);
+    setUpdate(!update);
+  }
 
   return (
     <div>
-      <link
-        href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
-        rel="stylesheet"
-      />
       {isLoading && (
         <div className="loading-back">
           <div className="loading-indicator">
@@ -89,6 +72,16 @@ const OrdersList = () => {
           </div>
         </div>
       )}
+      <link
+        href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+        rel="stylesheet"
+      />
+      {(selectedProduct != null) &&
+        <div style={{ position: "fixed", zIndex: "999999", left: "50%", top: "50%", transform: "translateX(-50%) translateY(-50%)" }}>
+          <button className="btn btn-outline-dark" onClick={() => { setSelectedProduct(null) }} style={{ top: "50px", position: "fixed", zIndex: "999999" }}>Close</button>
+          <CreateProduct product={products[selectedProduct]} isCreate={false} closeTab={closeChange}></CreateProduct>
+        </div>
+      }
       <div class="container mb-4 main-container">
         <div class="row">
           <div class="col-lg-4 pb-5">
@@ -112,7 +105,7 @@ const OrdersList = () => {
                 <div class="author-card-profile">
                   <div class="author-card-avatar">
                     <img
-                      src={`./avatars/images/ava_${((formData.buyer.id) % 25 + 1).toString().padStart(2, '0')}.gif`}
+                      src={`./avatars/images/ava_${((formData.buyer.id + 10) % 25 + 1).toString().padStart(2, '0')}.gif`}
                       alt={formData.buyer.name}
                       style={{ width: '400px', height: '400px' }}
                     />
@@ -133,10 +126,10 @@ const OrdersList = () => {
                     <div>
                       <i class="fa fa-shopping-bag mr-1 text-muted"></i>
                       <div class="d-inline-block font-weight-medium text-uppercase">
-                        Orders List
+                        Product List
                       </div>
                     </div>
-                    <span class="badge badge-secondary">{orders.length}</span>
+                    <span class="badge badge-secondary">{products.length}</span>
                   </div>
                 </a>
                 <Link to="/profile" class="list-group-item">
@@ -170,22 +163,19 @@ const OrdersList = () => {
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>Order #</th>
-                    <th>Date Purchased</th>
-                    <th>Status</th>
-                    <th>Total</th>
+                    <th>Product #</th>
+                    <th>Created Date</th>
+                    <th>Expiration Date</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Price</th>
+                    <th>Change</th>
+                    <th>View</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders && orders.map((order, index) => {
-                    const orderItems_ = [];
-                    order.orderItems.map((item, itemIndex) => {
-                      const item_ = { ...item };
-                      item_.productReview = !item_.productReview ? `❌,${item.product.id},${item.id}` : "⭐".repeat(item_.productReview.rating);
-                      item_.product = item_.product ? item_.product.image_filename : "";
-                      delete item_.createdTime;
-                      orderItems_.push(item_);
-                    });
+                  {products && products.map((product, index) => {
                     return (
                       <React.Fragment key={index}>
                         <tr>
@@ -195,42 +185,50 @@ const OrdersList = () => {
                               href="#order-details"
                               data-toggle="modal"
                             >
-                              {order.id}
+                              {product.id}
                             </a>
                           </td>
-                          <td>{new Date(order.createdTime).toISOString().split('T')[0]}</td>
+                          <td>{new Date(product.createdTime).toISOString().split('T')[0]}</td>
+                          <td>{new Date(product.expirationDate).toISOString().split('T')[0]}</td>
                           <td>
-                            <span class="badge badge-info m-0">In Progress</span>
+                            <p>{product.name}</p>
                           </td>
                           <td>
-                            <span>${order.price}</span>
+                            <p>{product.description}</p>
+                          </td>
+                          <td>
+                            <img className="image-blob" src={product.image_filename} />
+                          </td>
+                          <td>
+                            <span>${product.price}</span>
+                          </td>
+                          <td>
+                            <button className="btn btn-outline-dark" onClick={() => { setSelectedProduct(index) }}>Change</button>
+                          </td>
+                          <td>
+                            <Link to={`/product/${product.id}`} className="btn btn-outline-dark" style={{ color: "blue" }}>View</Link>
                           </td>
                         </tr>
                         <tr key={index}>
                           <td colSpan="4" className="bg-light">
                             <div>
-                              <strong>Shipping Address:</strong> {joinAddress(order.shippingAddress.address)}
+                              <strong>Tags:</strong> <Tag types={product.tags.map(tag => tag.type)} texts={product.tags.map(tag => tag.title)}></Tag>
                             </div>
                             <div>
-                              <strong>Payment Method:</strong> <span class="badge badge-warning m-0">{`${order.paymentMethod.title}`}</span>
+                              <strong>Categories:</strong> <Tag types={product.categories.map(category => category.type)} texts={product.categories.map(category => category.name)}></Tag>
                             </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td colSpan="4" className="bg-light">
-                            <Table initialData={orderItems_} initialItemsPerPage={2} initialTableName="Order items"></Table>
                           </td>
                         </tr>
                       </React.Fragment>)
                   })}
-                </tbody>
-              </table>
-            </div>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
     </div >
   );
 };
 
-export default OrdersList;
+export default ProductList;

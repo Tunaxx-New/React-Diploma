@@ -13,7 +13,6 @@ const api = async (route, request) => {
   }
 
   // Request processing
-  console.log(request);
   const response = await fetch(route, request);
 
   // Response processing, saving token into cookies

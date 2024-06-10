@@ -72,7 +72,7 @@ class ErrorBoundary extends Component {
           <h1>Something went wrong. Please try again later.</h1>
           <div key={1}>
             {this.processErrorExplanation(errorStrings[0], JSON.parse(errorStrings[2]))}
-            <Tag texts={[`${errorStrings[0]} ${errorStrings[1]}`]} types={[this.processNetworkErrorToType(errorStrings[0])]}></Tag>
+            <Tag texts={[`${errorStrings[0]} ${errorStrings[1]}`]} types={this.processNetworkErrorToType(errorStrings[0])}></Tag>
           </div>
           <button onClick={this.handleGoBack}>Go Back</button>
           <details style={{ whiteSpace: 'pre-wrap' }}>

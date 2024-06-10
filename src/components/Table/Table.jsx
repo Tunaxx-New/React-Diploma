@@ -4,6 +4,7 @@ import Dropdown from './Dropdown';
 import nestedKeys from '../../utils/nestedKeys';
 import api from '../../apis/api';
 import getValueByNestedKey from '../../utils/nestedKeys';
+import { Link } from 'react-router-dom';
 
 function Table({ initialData = [], initialItemsPerPage = 10, initialTableName = "", initialTableType = "FriendlyUI", initialEndpoint = "" }) {
 	const [tableName, setTableName] = useState(initialTableName);
@@ -79,7 +80,7 @@ function Table({ initialData = [], initialItemsPerPage = 10, initialTableName = 
 				*/
 				//return response;
 			}
-			setItemsPerPage(initialItemsPerPage);
+			//setItemsPerPage(initialItemsPerPage);
 		}
 		fetchData();
 	}, [itemsPerPage, initialItemsPerPage, sortOrder, sortBy, initialEndpoint, filterOptions]);
@@ -241,10 +242,14 @@ function Table({ initialData = [], initialItemsPerPage = 10, initialTableName = 
 														<div>{line}</div>
 													</React.Fragment>
 												))
-											) : (
-												/* If the value does not contain newline characters, render it as is */
-												value
-											)}
+											) : (value.includes('http') ?
+												(<img className='image-blob' src={value.replaceAll("\"", "")} />) :
+												((value.includes('❌')) ? (
+													<Link className='btn btn-outline-dark' to={"/product-review/" + value.replaceAll("\"", "").split(",")[1] + "/" + value.replaceAll("\"", "").split(",")[2]}>
+														{value.replaceAll("\"", "").split(",")[0]} Make Review
+													</Link>
+												) :
+													(value.replaceAll("\"", ""))))}
 										</td>
 									);
 								})}

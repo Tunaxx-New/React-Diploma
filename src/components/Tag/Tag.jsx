@@ -2,6 +2,9 @@ import './Tag.css';
 
 function Tag({ types = [""], texts = [""] }) {
     const getBadgeColor = (type) => {
+        if (type && type.toLowerCase)
+            type = type.toLowerCase();
+
         switch (type) {
             case 'new':
                 return 'var(--badge-color-new)';
@@ -18,9 +21,8 @@ function Tag({ types = [""], texts = [""] }) {
                 return 'var(--badge-color-default)';
         }
     }
-    console.log(types, texts);
     return (
-        <div className='tags'>
+        <div className='tags d-flex'>
             {texts.map((text, index) => (
                 <span className="tag" style={{ backgroundColor: getBadgeColor(types[index]) }}>{text}</span>
             ))}

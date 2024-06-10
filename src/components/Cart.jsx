@@ -19,6 +19,7 @@ const Cart = () => {
 
   const [updated, setUpdated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [cleared, setCleared] = useState(false);
 
   const throwAsyncError = useAsyncError();
   const navigate = useNavigate();
@@ -56,17 +57,31 @@ const Cart = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [cleared]);
+
+  const clearCart = async () => {
+    setIsLoading(true);
+    try {
+      let data = await api('/api/private/buyer/cart/clear', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+    } catch (error) {
+      throwAsyncError(error);
+    } finally {
+      setCleared(!cleared);
+      setIsLoading(false);
+    }
+  }
 
   useEffect(() => {
 
   }, [updated])
 
   const EmptyCart = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+  
     return (
       <div className="container">
         {isLoading && (
@@ -233,8 +248,9 @@ const Cart = () => {
               </div>
               <div className="col-md-4">
                 <div className="card mb-4">
-                  <div className="card-header py-3 bg-light">
+                  <div className="card-header py-3 bg-light d-flex" style={{justifyContent:"space-between"}}>
                     <h5 className="mb-0">Order Summary</h5>
+                    <button className="btn btn-dark" onClick={clearCart}>Clear</button>
                   </div>
                   <div className="card-body">
                     <ul className="list-group list-group-flush">

@@ -17,3 +17,4 @@ export { default as RegisterSeller } from "./Seller/RegisterSeller";
 
 //Product
 export { default as ProductCard } from "./Product/ProductCard";
+export { default as ProductReview } from "./Product/ProductReview";

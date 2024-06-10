@@ -41,13 +41,13 @@ const Home = () => {
         </div>
       </ModalWindow> */}
 
-      <div className="hero border-1 pb-3">
+      <div className="hero border-1 pb-3 mt-2">
         <div className="card bg-dark text-white border-0 mx-3">
           <img
             className="card-img img-fluid"
             src="./assets/main.jpg"
             alt="Card"
-            style={{ height: "1200px" }}
+            style={{ height: "400px" }}
           />
           <div className="card-img-overlay d-flex align-items-center">
             <div className="container">

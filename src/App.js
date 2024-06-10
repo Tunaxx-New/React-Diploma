@@ -29,13 +29,15 @@ import {
 } from "./pages";
 
 import Product from "./components/Products";
+import Products from "./components/Products";
 import ProfilePage from "./pages/ProfilePage";
-import ProductsPage from "./pages/ProductsPage";
 import ListSellers from "./SellerRatings/SellerRatings";
 import OrderInfo from "./pages/Orders/OrderInfo/OrderInfo";
 import { useAsyncError } from './commons';
 import api from './apis/api';
 import CreateProduct from "./components/Seller/CreateProduct";
+import ProductListPage from "./pages/ProductListPage";
+import ProductReview from "./components/Product/ProductReview";
 
 function App() {
   const throwAsyncError = useAsyncError();
@@ -66,7 +68,7 @@ function App() {
       <Provider store={store}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductPage />} />
 
           <Route path="/create-product/:id" element={<CreateProduct />} />
@@ -78,6 +80,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/profile" element={<ProfilePage />} />
+
+          <Route path="/product-review/:productId/:orderId" element={<ProductReview />} />
+          <Route path="/product-list" element={<ProductListPage />} />
           <Route path="/orders-list" element={<OrdersListPage />} />
           {/* Add routes for registrations */}
           <Route path="/private/registerSeller" element={<Register />} />

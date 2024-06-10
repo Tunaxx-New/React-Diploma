@@ -207,7 +207,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 100%;
   top: 0;
   left: 0;
-  z-index: 99999;
+  z-index: 999999;
   position: fixed;
   opacity: 0.6;
 }
@@ -240,4 +240,9 @@ input[type="range"]::-webkit-slider-thumb {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.image-blob {
+  height: 64px;
+  width: auto;
 }

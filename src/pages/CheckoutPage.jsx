@@ -103,11 +103,10 @@ const Checkout = () => {
           "Content-Type": "application/json"
         }
       });
-    } catch (error) {
-      throwAsyncError(error);
-    } finally {
       setIsLoading(false);
       navigate("/");
+    } catch (error) {
+      throwAsyncError(error);
     }
   }
 
@@ -213,7 +212,7 @@ const Checkout = () => {
                     </li>
                     <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                       Commission {profile.buyer.commissionPercentage}%
-                      <span>${commission}</span>
+                      <span>${commission.toFixed(2)}</span>
                     </li>
                     <li className="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
                       <div>

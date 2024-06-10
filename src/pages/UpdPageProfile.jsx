@@ -14,7 +14,7 @@ const UpdPageProfile = ({ userId, type }) => {
 
   const [clv, setClv] = useState();
   const [loyalty, setLoyalty] = useState();
-  // TODO: const [loyaltySeller, setLoyaltySeller] = useState();
+  const [loyaltySeller, setLoyaltySeller] = useState();
 
   const [activeSetting, setActiveSetting] = useState(type);
   const [successMessage, setSuccessMessage] = useState(undefined);
@@ -49,6 +49,7 @@ const UpdPageProfile = ({ userId, type }) => {
             "Content-Type": "application/json"
           }
         });
+        console.log(data.authentication, "PPAPA");
         if (data) {
           setFormData(data.authentication);
         }
@@ -320,10 +321,12 @@ const UpdPageProfile = ({ userId, type }) => {
   // };
 
   async function updateBadges(data) {
-    for (const badge of data) {
-      const resp = await imageApi(badge.imageSource);
-      badge.imageSource = resp;
-    }
+    await Promise.all(data.map(async badge => {
+      //console.log(badge.imageSource, "LLL");
+      //const resp = await imageApi(badge.imageSource);
+      //console.log(resp, "LLL");
+      //badge.imageSource = resp;
+    }));
     return data;
   }
 
@@ -1057,7 +1060,7 @@ a.list-group-item, .list-group-item-action {
                     </div>
 
                     <div className="col-md-12">
-                      <Table initialData={formData.seller.products} initialTableName="Roles" initialItemsPerPage={5} ></Table>
+                      <Table initialData={formData.seller.products} initialTableName="Products" initialItemsPerPage={5} ></Table>
                     </div>
 
                     <div className="col-md-12">
@@ -1092,8 +1095,8 @@ a.list-group-item, .list-group-item-action {
                 <div className="col-lg-8 pb-5">
                   <div className="d-flex" style={{ flexWrap: 'wrap' }}>
 
-                    <LoyaltyCard value={loyalty} title="Loyalty Index Buyer"></LoyaltyCard>
-                    {formData.seller && <LoyaltyCard value={loyaltySeller} title="Loyalty Index Seller"></LoyaltyCard>}
+                    <LoyaltyCard value={loyalty && loyalty.toFixed(2)} title="Loyalty Index Buyer"></LoyaltyCard>
+                    {formData.seller && <LoyaltyCard value={loyaltySeller && loyaltySeller.toFixed(2)} title="Loyalty Index Seller"></LoyaltyCard>}
                     <LoyaltyCard value={clv.clvsAverage.toFixed(2)} title="CLV" tresholds={[2, 0]}></LoyaltyCard>
                     <LoyaltyCard value={orders.reduce((sumo, order) => { return sumo + order.orderItems.reduce((sumoi, orderItem) => { return sumoi + orderItem.price * orderItem.amount }, 0) }, 0)} title="Money spent" tresholds={[500, 100]} tresholdCoef={-1} textAdd="$"></LoyaltyCard>
                     <LoyaltyCard value={formData.buyer.badges.length} title="Badges Count" tresholds={[5, 2]}></LoyaltyCard>
@@ -1134,6 +1137,10 @@ a.list-group-item, .list-group-item-action {
                     <div style={styles.infoContainer}>
                       <img src="https://cf.appdrag.com/dashboard-openvm-clo-b2d42c/uploads/minio-icon-rbzC.png" alt="Description" style={{ margin: 0, width: "32px" }} />
                       <a href="http://104.248.234.194:9001/" style={{ ...styles.link, color: "#c50036" }}>Minio files</a>
+                    </div>
+                    <div style={styles.infoContainer}>
+                      <img src="https://static-00.iconduck.com/assets.00/swagger-icon-256x256-j80nuve7.png" alt="Description" style={{ margin: 0, width: "32px" }} />
+                      <a href="http://104.248.234.194:8080/api/swagger-ui/index.html" style={{...styles.link, color:"green"}}>Swagger API</a>
                     </div>
                     <div>
                       <h2>Actuator Endpoints</h2>

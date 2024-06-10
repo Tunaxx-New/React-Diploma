@@ -1,23 +1,55 @@
 import React, { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addCart } from "../redux/action";
+import { useAsyncError } from "../commons";
 
 import { Footer, Navbar } from "../commons";
 import api from "../apis/api";
+import { Tag } from "../components";
+import { ProductReview } from "../components";
 
 const ProductPage = () => {
   const { id } = useParams(); // Получаем id из параметров маршрута
   const [product, setProduct] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loading2, setLoading2] = useState(true);
+  const throwAsyncError = useAsyncError();
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
 
-  const addProduct = (product) => {
-    dispatch(addCart(product));
+  const addProduct = async (id) => {
+    try {
+      const response = await api(`/api/private/buyer/cart/add?id=${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      throwAsyncError(error);
+    } finally {
+      window.location.reload();
+    }
+  };
+
+  const getOrders = async (id) => {
+    try {
+      const response = await api(`/api/private/buyer/product/id/orders?id=${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log(response, "{{{");
+      setOrders(response);
+    } catch (error) {
+      throwAsyncError(error);
+    }
   };
 
   useEffect(() => {
@@ -51,7 +83,12 @@ const ProductPage = () => {
       setLoading2(false);
     };
     getProduct();
+    getOrders(id);
   }, [id]);
+
+  const joinAddress = (addressObj) => {
+    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+  };
 
   const Loading = () => {
     return (
@@ -136,7 +173,7 @@ const ProductPage = () => {
         color: '#343a40',
       },
     };
-    
+
 
     if (!product) return null;
     return (
@@ -175,10 +212,18 @@ const ProductPage = () => {
                 <strong>Expiration Date:</strong>{" "}
                 {product.expirationDate || "N/A"}
               </p>
+              <div>
+                <label><strong>Categories</strong></label>
+                <Tag types={product.categories.map(category => category.type)} texts={product.categories.map(category => category.name)}></Tag>
+              </div>
+              <div>
+                <label><strong>Tags</strong></label>
+                <Tag types={product.tags.map(tag => tag.type)} texts={product.tags.map(tag => tag.title)}></Tag>
+              </div>
               <div className="my-4">
                 <button
                   className="btn btn-outline-dark"
-                  onClick={() => addProduct(product)}
+                  onClick={() => addProduct(product.id)}
                   style={styles.btnOutlineDark}
                 >
                   Add to Cart
@@ -226,6 +271,53 @@ const ProductPage = () => {
                 </p>
               </div>
             </div>
+          </div>
+          <div>
+            <h3>Reviews</h3>
+
+            <p>Average ⭐ {(orders.reduce((acc, order) => { if (order.orderItems[0].productReview) {acc += order.orderItems[0].productReview.rating} return acc }, 0) / orders.length).toFixed(2)}/5</p>
+
+            <hr></hr>
+            {orders && orders.map((order, index) => (order &&
+              <div>
+                <div className="d-flex">
+                  <h2 className="mr-2">Order #{order.id}</h2>
+                  <Tag types={['new', 'popular', 'sale']} texts={[
+                    order.orderItems[0].productReview.buyer ? "Buyer" : null,
+                    order.price ? "Price" : null,
+                    order.createdTime ? "Date" : null
+                  ]}></Tag>
+                </div>
+                <div>
+                  <h6>Payment: {order.paymentMethod.title}</h6>
+                  <h6>Address: {joinAddress(order.shippingAddress.address)}</h6>
+                  {order.createdTime && <h6>Date: {new Date(order.createdTime).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</h6>}
+                  {order.price && <h6>Order Sum checkup: <strong>{order.price}$</strong></h6>}
+                </div>
+                {order.orderItems[0].productReview.buyer &&
+                  <div>
+                    <div className="card user-card">
+                      <div className="card-body">
+                        <div className="d-flex align-items-center">
+                          <img src={`${process.env.PUBLIC_URL}/avatars/images/ava_${((order.orderItems[0].productReview.buyer.id) % 25 + 1).toString().padStart(2, '0')}.gif`} alt={order.orderItems[0].productReview.buyer.name} className="avatar mr-3 image-blob" />
+                          <div>
+                            <h5 className="card-title mb-0">{order.orderItems[0].productReview.buyer.name}</h5>
+                            <p className="card-text mb-0">{order.orderItems[0].productReview.buyer.bio}</p>
+                            <p><i className="fa fa-award text-md"></i>&nbsp;{order.orderItems[0].productReview.buyer.badges.length} </p>
+                          </div>
+                        </div>
+                        <p className="card-text mt-3">Registered: {new Date(order.orderItems[0].productReview.buyer.registeredTime).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+                {order.orderItems[0].productReview &&
+                  <div>
+                    <ProductReview review={order.orderItems[0].productReview}></ProductReview>
+                  </div>
+                }
+              </div>
+            ))}
           </div>
         </div>
       </>

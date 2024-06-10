@@ -23,7 +23,8 @@
 .tag {
     background-color: #007bff;
     color: #fff;
-    padding: 5px 10px;
+    padding: 0px 10px;
     border-radius: 5px;
-    display: block;
+    display: inline-block; /* Change to inline-block to prevent line breaks */
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
 }
