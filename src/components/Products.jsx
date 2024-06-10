@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addCart } from "../redux/action";
-import { useAsyncError } from '../commons';
+import { useAsyncError } from "../commons";
 
 import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
@@ -23,8 +23,8 @@ const Products = ({ updateNavbar }) => {
   const [pageCount, setPageCount] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
-  const [sortKey, setSortKey] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortKey, setSortKey] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const dispatch = useDispatch();
   const throwAsyncError = useAsyncError();
@@ -48,25 +48,40 @@ const Products = ({ updateNavbar }) => {
         throwAsyncError(error);
       }
       setLoading(false);
-    }
+    };
     init();
-  }, [])
+  }, []);
 
   useEffect(() => {
     const get = async () => {
       const pageableString = `page=${currentPage}&size=${pageSize}&sort=${sortKey},${sortOrder}`;
       if (filter.length == 0 && filterTag.length == 0) {
-        const response = await getProducts(`/api/public/product/list?${pageableString}`);
+        const response = await getProducts(
+          `/api/public/product/list?${pageableString}`
+        );
         setData(response.content);
         setPageCount(response.totalPages);
       } else {
-        const productsByTags = filterTag.length != 0 ? await getProducts(`/api/public/product/listByTag?${pageableString}&tagsString=${filterTag.join(',')}`) : {content:[], totalElements:0};
-        const productsByCategories = filter.length != 0 ? await getProducts(`/api/public/product/listByCategory?${pageableString}&categoriesString=${filter.join(',')}`) : {content:[], totalElements:0};
+        const productsByTags =
+          filterTag.length != 0
+            ? await getProducts(
+                `/api/public/product/listByTag?${pageableString}&tagsString=${filterTag.join(",")}`
+              )
+            : { content: [], totalElements: 0 };
+        const productsByCategories =
+          filter.length != 0
+            ? await getProducts(
+                `/api/public/product/listByCategory?${pageableString}&categoriesString=${filter.join(",")}`
+              )
+            : { content: [], totalElements: 0 };
 
         const productMap = new Map();
-        const mergedProducts = [...productsByTags.content, ...productsByCategories.content];
+        const mergedProducts = [
+          ...productsByTags.content,
+          ...productsByCategories.content,
+        ];
         let sameCount = 0;
-        mergedProducts.forEach(product => {
+        mergedProducts.forEach((product) => {
           if (!productMap.has(product.id)) {
             productMap.set(product.id, product);
           } else {
@@ -76,9 +91,13 @@ const Products = ({ updateNavbar }) => {
         const uniqueMergedProducts = Array.from(productMap.values());
 
         setData(uniqueMergedProducts);
-        setPageCount(productsByTags.totalPages + productsByCategories.totalPages - sameCount);
+        setPageCount(
+          productsByTags.totalPages +
+            productsByCategories.totalPages -
+            sameCount
+        );
       }
-    }
+    };
     setLoading(true);
     get();
     setLoading(false);
@@ -99,9 +118,7 @@ const Products = ({ updateNavbar }) => {
     }
   };
 
-  useEffect(() => {
-
-  }, [loading]);
+  useEffect(() => {}, [loading]);
 
   const Loading = () => (
     <>
@@ -117,7 +134,9 @@ const Products = ({ updateNavbar }) => {
   );
 
   const getButtonClass = (cat, filter_, color) => {
-    return filter_.includes(cat) ? `btn btn-${color} btn-sm m-2` : `btn btn-outline-${color} btn-sm m-2`;
+    return filter_.includes(cat)
+      ? `btn btn-${color} btn-sm m-2`
+      : `btn btn-outline-${color} btn-sm m-2`;
   };
 
   const filterProduct = (cat, add, setFilter_, filter_) => {
@@ -141,7 +160,7 @@ const Products = ({ updateNavbar }) => {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`btn btn-outline-dark btn-sm m-2 ${currentPage === i ? 'active' : ''}`}
+          className={`btn btn-outline-dark btn-sm m-2 ${currentPage === i ? "active" : ""}`}
         >
           {i + 1}
         </button>
@@ -154,24 +173,40 @@ const Products = ({ updateNavbar }) => {
     <>
       <div className="buttons text-center py-5">
         <div>
-          {metaData.categories && metaData.categories.map(category => (
-            <button
-              className={getButtonClass(category.name, filter, "dark")}
-              onClick={() => filterProduct(category.name, !filter.includes(category.name), setFilter, filter)}
-            >
-              {category.name}
-            </button>
-          ))}
+          {metaData.categories &&
+            metaData.categories.map((category) => (
+              <button
+                className={getButtonClass(category.name, filter, "dark")}
+                onClick={() =>
+                  filterProduct(
+                    category.name,
+                    !filter.includes(category.name),
+                    setFilter,
+                    filter
+                  )
+                }
+              >
+                {category.name}
+              </button>
+            ))}
         </div>
         <div>
-          {metaData.tags && metaData.tags.map(tag => (
-            <button
-              className={getButtonClass(tag.title, filterTag, "primary")}
-              onClick={() => filterProduct(tag.title, !filterTag.includes(tag.title), setFilterTag, filterTag)}
-            >
-              {tag.title}
-            </button>
-          ))}
+          {metaData.tags &&
+            metaData.tags.map((tag) => (
+              <button
+                className={getButtonClass(tag.title, filterTag, "primary")}
+                onClick={() =>
+                  filterProduct(
+                    tag.title,
+                    !filterTag.includes(tag.title),
+                    setFilterTag,
+                    filterTag
+                  )
+                }
+              >
+                {tag.title}
+              </button>
+            ))}
         </div>
 
         <div className="pagination-controls">
@@ -192,9 +227,18 @@ const Products = ({ updateNavbar }) => {
           </button>
         </div>
 
-        <div className="sort-controls m-2" style={{ display: 'flex', alignItems: 'center', justifyContent: "space-between" }}>
+        <div
+          className="sort-controls m-2"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
-          <button className="btn btn-outline-dark m-2"><i class="bi bi-arrow-clockwise"></i></button>
+            <button className="btn btn-outline-dark m-2">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
             <label className="col-form-label-sm">Page size</label>
             <input
               type="number"
@@ -207,30 +251,47 @@ const Products = ({ updateNavbar }) => {
               style={{ width: "auto", padding: 0, paddingRight: "8px" }}
             />
           </div>
-          <div className="sort-controls m-2" style={{ display: 'flex', alignItems: 'center' }}>
-            <select className="form-select" onChange={(e) => setSortKey(e.target.value)} value={sortKey} style={{ width: '200px' }}>
+          <div
+            className="sort-controls m-2"
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <select
+              className="form-select"
+              onChange={(e) => setSortKey(e.target.value)}
+              value={sortKey}
+              style={{ width: "200px" }}
+            >
               <option value="">Select Sort Key</option>
               <option value="createdTime">Creation time</option>
               <option value="expirationDate">Expiration date</option>
               <option value="name">Name</option>
               <option value="price">Price</option>
-              <option value="seller.registeredTime">Seller registered time</option>
+              <option value="seller.registeredTime">
+                Seller registered time
+              </option>
               {/* Add other keys as needed */}
             </select>
-            <select className="form-select m-2" onChange={(e) => setSortOrder(e.target.value)} value={sortOrder} style={{ width: '150px' }}>
+            <select
+              className="form-select m-2"
+              onChange={(e) => setSortOrder(e.target.value)}
+              value={sortOrder}
+              style={{ width: "150px" }}
+            >
               <option value="asc">Ascending</option>
               <option value="desc">Descending</option>
             </select>
           </div>
         </div>
-
       </div>
 
-      {
-        data && data.map((product) => (
-          <ProductCard product={product} setIsLoading={setLoading} updateNavbar={updateNavbar}></ProductCard>
-        ))
-      }
+      {data &&
+        data.map((product) => (
+          <ProductCard
+            product={product}
+            setIsLoading={setLoading}
+            updateNavbar={updateNavbar}
+          ></ProductCard>
+        ))}
     </>
   );
 
@@ -243,14 +304,14 @@ const Products = ({ updateNavbar }) => {
             <hr />
           </div>
         </div>
-        {loading &&
+        {loading && (
           <div className="loading-back">
             <div className="loading-indicator">
               <div className="loading-circle"></div>
               <p>Processing...</p>
             </div>
           </div>
-        }
+        )}
         <div className="row justify-content-center">
           {loading ? <Loading /> : <ShowProducts />}
         </div>
