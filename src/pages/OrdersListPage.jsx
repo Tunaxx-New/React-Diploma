@@ -6,6 +6,8 @@ import {
 
 } from "../commons";
 
+import "./OrdersListPage"
+
 import { OrdersList } from "../components/";
 const OrdersListPage = () => {
   return (

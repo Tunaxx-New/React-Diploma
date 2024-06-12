@@ -87,7 +87,7 @@ const Footer = () => {
                     </button>
                   </form>
                   <p class="fs-sm text-white text-opacity-75">
-                    I agree to receive Absolution newsletters
+                    I agree to receive newsletters
                   </p>
                 </div>
                 */}
@@ -101,9 +101,9 @@ const Footer = () => {
             <div class="row">
               <div class="col-md-6 text-center text-md-start py-1">
                 <p class="m-0 text-white text-opacity-75">
-                  © 2022 copyright by{" "}
+                  © 2024 copyright by{" "}
                   <a class="text-reset" href="#">
-                    bootdey.com
+                    eco-shop
                   </a>
                 </p>
               </div>
