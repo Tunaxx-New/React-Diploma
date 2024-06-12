@@ -38,6 +38,11 @@ import api from './apis/api';
 import CreateProduct from "./components/Seller/CreateProduct";
 import ProductListPage from "./pages/ProductListPage";
 import ProductReview from "./components/Product/ProductReview";
+import LoyaltyIndex from "./commons/Info/LoyaltyIndex";
+import CLV from "./commons/Info/CLV";
+import Badges from "./commons/Info/Badges";
+import Transparent from "./commons/Info/Transparency";
+import RetailInfo from "./commons/Info/RetailInfo";
 
 function App() {
   const throwAsyncError = useAsyncError();
@@ -71,7 +76,7 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductPage />} />
 
-          <Route path="/create-product/:id" element={<CreateProduct />} />
+          <Route path="/create-product/:id" element={<CreateProduct isCreate={true}/>} />
 
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -91,6 +96,12 @@ function App() {
           <Route path="/list" element={<ListSellers />} />
           <Route path="/orders-list1" element={<OrderInfo />} />
           <Route path="*" element={<PageNotFound />} />
+
+          <Route path="/info/loyalty" element={<LoyaltyIndex />} />
+          <Route path="/info/clv" element={<CLV />} />
+          <Route path="/info/badges" element={<Badges />} />
+          <Route path="/info/transparent" element={<Transparent />} />
+          <Route path="/info/retail" element={<RetailInfo />} />
         </Routes>
       </Provider>
     </BrowserRouter>

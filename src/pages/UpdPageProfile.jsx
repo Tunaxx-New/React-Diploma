@@ -49,7 +49,7 @@ const UpdPageProfile = ({ userId, type }) => {
             "Content-Type": "application/json"
           }
         });
-        console.log(data.authentication, "PPAPA");
+
         if (data) {
           setFormData(data.authentication);
         }
@@ -331,7 +331,9 @@ const UpdPageProfile = ({ userId, type }) => {
   }
 
   const joinAddress = (addressObj) => {
-    return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+    if (addressObj)
+      return `${addressObj.streetAddress}, ${addressObj.city}, ${addressObj.state}, ${addressObj.country}, ${addressObj.postalCode}`;
+    return "";
   };
   const styles = {
     container: {
@@ -795,7 +797,7 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Payment method</label>
                         <div class="tooltip-container">
-                          <p class="" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod.title}&nbsp;</p>
+                          <p class="" data-tooltip="Payment method for order">{formData.buyer.cart.paymentMethod && formData.buyer.cart.paymentMethod.title}&nbsp;</p>
                         </div>
                       </div>
                     </div>
@@ -803,7 +805,7 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Shipping address</label>
                         <div class="tooltip-container">
-                          <p class="" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress.title}&nbsp;</p>
+                          <p class="" data-tooltip="Shipping address for order">{formData.buyer.cart.shippingAddress && formData.buyer.cart.shippingAddress.title}&nbsp;</p>
                         </div>
                       </div>
                     </div>
@@ -811,10 +813,10 @@ a.list-group-item, .list-group-item-action {
                       <div className="form-group">
                         <label htmlFor="account-cart">Shipping address Detail</label>
                         <div class="tooltip-container">
-                          <p class="" data-tooltip="Shipping address for order">{joinAddress(formData.buyer.cart.shippingAddress.address)}&nbsp;</p>
+                          <p class="" data-tooltip="Shipping address for order">{joinAddress(formData.buyer.cart.shippingAddress && formData.buyer.cart.shippingAddress.address)}&nbsp;</p>
                         </div>
                         <div class="tooltip-container">
-                          <p> {formData.buyer.cart.shippingAddress.geoLocation.latitude} {formData.buyer.cart.shippingAddress.geoLocation.longitude}</p>
+                          <p> {formData.buyer.cart.shippingAddress && formData.buyer.cart.shippingAddress.geoLocation.latitude} {formData.buyer.cart.shippingAddress && formData.buyer.cart.shippingAddress.geoLocation.longitude}</p>
                         </div>
                       </div>
                     </div>

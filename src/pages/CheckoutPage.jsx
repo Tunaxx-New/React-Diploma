@@ -183,7 +183,7 @@ const Checkout = () => {
       return (totalItems += item.qty);
     });
 
-    const productSum = Math.round(cart.cartItems.reduce((sum, cartItem) => sum + cartItem.product.price * cartItem.amount, 0));
+    const productSum = Math.round(cart.cartItems.reduce((sum, cartItem) => { console.log(cartItem.product.price * cartItem.amount, "LOL");return sum += cartItem.product.price * cartItem.amount }, 0));
     const commission = productSum * (profile.buyer.commissionPercentage / 100);
     const allSum = productSum + commission;
 
@@ -207,7 +207,7 @@ const Checkout = () => {
                 <div className="card-body">
                   <ul className="list-group list-group-flush">
                     <li className="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
-                      Products ({cart.cartItems.length})
+                      Products ({cart.cartItems.reduce((sum, orderItem) => {return sum += orderItem.amount}, 0)})
                       <span>${productSum}</span>
                     </li>
                     <li className="list-group-item d-flex justify-content-between align-items-center px-0">

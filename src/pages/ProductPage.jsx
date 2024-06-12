@@ -275,7 +275,7 @@ const ProductPage = () => {
           <div>
             <h3>Reviews</h3>
 
-            <p>Average ⭐ {(orders.reduce((acc, order) => { if (order.orderItems[0].productReview) {acc += order.orderItems[0].productReview.rating} return acc }, 0) / orders.length).toFixed(2)}/5</p>
+            <p>Average ⭐ {(orders.reduce((acc, order) => { if (order && order.orderItems[0].productReview) {acc += order.orderItems[0].productReview.rating} return acc }, 0) / orders.length).toFixed(2)}/5</p>
 
             <hr></hr>
             {orders && orders.map((order, index) => (order &&
@@ -283,7 +283,7 @@ const ProductPage = () => {
                 <div className="d-flex">
                   <h2 className="mr-2">Order #{order.id}</h2>
                   <Tag types={['new', 'popular', 'sale']} texts={[
-                    order.orderItems[0].productReview.buyer ? "Buyer" : null,
+                    order.orderItems[0].productReview && order.orderItems[0].productReview.buyer ? "Buyer" : null,
                     order.price ? "Price" : null,
                     order.createdTime ? "Date" : null
                   ]}></Tag>
@@ -294,7 +294,7 @@ const ProductPage = () => {
                   {order.createdTime && <h6>Date: {new Date(order.createdTime).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</h6>}
                   {order.price && <h6>Order Sum checkup: <strong>{order.price}$</strong></h6>}
                 </div>
-                {order.orderItems[0].productReview.buyer &&
+                {order.orderItems[0].productReview && order.orderItems[0].productReview.buyer &&
                   <div>
                     <div className="card user-card">
                       <div className="card-body">

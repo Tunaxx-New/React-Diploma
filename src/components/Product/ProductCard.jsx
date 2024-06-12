@@ -40,6 +40,15 @@ const ProductCard = ({ product, setIsLoading, updateNavbar }) => {
           align-content: flex-end;
           flex-wrap: wrap;
           justify-content: center;
+          flex-direction: column;
+        }
+        .card-items  h5 {
+          width: 100%;
+          text-align: center;
+        }
+        .card-items  p {
+          width: 100%;
+          text-align: center;
         }
         `}
       </style>

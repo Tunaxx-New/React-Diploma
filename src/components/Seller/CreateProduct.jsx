@@ -224,7 +224,7 @@ const CreateProduct = ({ params, product, isCreate = false, closeTab }) => {
                                 style={{ height: '200px', cursor: 'pointer', backgroundColor: '#f8f9fa' }}
                                 onClick={() => document.getElementById('imageInput').click()}>
                                 {imagePreview ? (
-                                    <img src={imagePreview} alt="Product Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} />
+                                    <img src={URL.createObjectURL(imagePreview)} alt="Product Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} />
                                 ) : (
                                     <span className="text-muted">Click to upload image</span>
                                 )}

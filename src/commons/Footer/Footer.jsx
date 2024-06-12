@@ -11,26 +11,26 @@ const Footer = () => {
               <div class="col-lg-8 pe-xxl-10">
                 <div class="row gy-5">
                   <div class="col-6 col-lg-4">
-                    <h5 class="text-white footer-title-01">A propos</h5>
+                    <h5 class="text-white footer-title-01">Need Help?</h5>
                     <ul class="list-unstyled footer-link-01 m-0">
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          About Us
+                        <a class="text-white text-opacity-75" href="https://github.com/Tunaxx-New/awesome-ecommerce-project">
+                          <i class="bi bi-github"></i> GitHub of project
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Blog
+                        <a class="text-white text-opacity-75" href="https://astanait.edu.kz/">
+                          <i class="bi bi-building"></i> AITU University
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Our ingredients
+                        <a class="text-white text-opacity-75" href="https://t.me/Mrowa223">
+                          <i class="bi bi-filetype-jsx"></i> Front end developer
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Our resellers
+                        <a class="text-white text-opacity-75" href="https://t.me/tunaxxnew/">
+                          <i class="bi bi-filetype-java"></i> Back end developer
                         </a>
                       </li>
                     </ul>
@@ -39,58 +39,28 @@ const Footer = () => {
                     <h5 class="text-white footer-title-01">About</h5>
                     <ul class="list-unstyled footer-link-01 m-0">
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Customer Service
+                        <a class="text-white text-opacity-75" href="/info/loyalty">
+                          <i class="bi bi-bag-heart-fill"></i> Loyalty index
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Privacy Policy
+                        <a class="text-white text-opacity-75" href="/info/transparent">
+                          <i class="bi bi-transparency"></i> Transparent Policies
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Cookie Policy
+                        <a class="text-white text-opacity-75" href="/info/clv">
+                          <i class="bi bi-bag-plus-fill"></i> {"Customer lifetime value (CLV)"}
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Terms &amp; Conditions
+                        <a class="text-white text-opacity-75" href="/info/badges">
+                          <i class="bi bi-patch-question-fill"></i> Badges
                         </a>
                       </li>
                       <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Terms of Use
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <div class="col-6 col-lg-4">
-                    <h5 class="text-white footer-title-01">Need Help?</h5>
-                    <ul class="list-unstyled footer-link-01 m-0">
-                      <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Contact Us
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          FAQs
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Offers &amp; Kits
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Get the app
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-white text-opacity-75" href="#">
-                          Store locator
+                        <a class="text-white text-opacity-75" href="/info/retail">
+                          <i class="bi bi-shop"></i> Kazakhstan online retail
                         </a>
                       </li>
                     </ul>
@@ -98,6 +68,7 @@ const Footer = () => {
                 </div>
               </div>
               <div class="col-lg-4">
+                {/*
                 <h5 class="text-white footer-title-01 fs-5">
                   Subscribe to our newsletter and get 15% off your next order.
                 </h5>
@@ -119,11 +90,13 @@ const Footer = () => {
                     I agree to receive Absolution newsletters
                   </p>
                 </div>
+                */}
+              </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="footer-bottom small py-3 border-top border-white border-opacity-10">
+          <div class="footer-bottom small py-3 border-top border-white border-opacity-10">
+            {/*
           <div class="container">
             <div class="row">
               <div class="col-md-6 text-center text-md-start py-1">
@@ -155,7 +128,8 @@ const Footer = () => {
               </div>
             </div>
           </div>
-        </div>
+        */}
+          </div>
       </footer>
     </>
   );

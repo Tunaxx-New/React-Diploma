@@ -149,7 +149,7 @@ const Cart = () => {
 
   const ShowCart = () => {
     let subtotal = 0;
-    let shipping = 30.0;
+    let shipping = 0.0;
     let totalItems = 0;
     cart.cartItems.map((item) => {
       return (subtotal += item.product.price * item.amount);
